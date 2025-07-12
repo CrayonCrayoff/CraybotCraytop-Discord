@@ -22,9 +22,10 @@ logging.basicConfig(level=logging.INFO)
 
 # set up intents
 intents = discord.Intents.default()
+intents.guilds = True
+intents.members = True
 intents.message_content = True
 intents.messages = True
-intents.guilds = True
 
 # create bot instance
 bot = commands.Bot(command_prefix="!",

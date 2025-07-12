@@ -14,6 +14,8 @@ PARENT_DIR = SCRIPT_DIR.parent  # goes up once again (to the DiscordBot folder)
 
 load_dotenv(PARENT_DIR / ".env")
 
+CRAYON_USER_ID = int(os.getenv("CRAYON_USER_ID"))
+
 GUCCI_SERVER_ID = int(os.getenv("GUCCI_SERVER_ID"))
 
 BIRTHDAY_ROLE_ID = int(os.getenv("BIRTHDAY_ROLE_ID"))
@@ -39,10 +41,7 @@ for key in required_env_vars:
     if not required_env_vars[key]:
         raise ValueError(f"PingListenerCog: Variable {key} did not load.")
 
-
-ALLOW_ALL = discord.AllowedMentions(everyone=True,
-                                    roles=True,
-                                    users=True)
+ALLOW_MENTIONS = discord.AllowedMentions(everyone=True, roles=True, users=True)
 
 
 class PingListenerCog(commands.Cog):
@@ -56,11 +55,7 @@ class PingListenerCog(commands.Cog):
             return
 
         if isinstance(message.channel, discord.DMChannel):
-            print(f"[DEBUG] Received a DM from {message.author}:"
-                  f" {message.content}")
-            response = ("I'm sorry, I'm not programmed to respond to DMs.\n"
-                        "Please use my commands in the server.")
-            await message.channel.send(response)
+            await self.dm_response(message)
             return
 
         print(f"[DEBUG] Received message in {message.guild} / "
@@ -75,15 +70,34 @@ class PingListenerCog(commands.Cog):
                 print("[DEBUG] BirthdayPing trigger conditions met. "
                       "Sending birthday ping.")
                 await message.channel.send(f"<@&{BIRTHDAY_ROLE_ID}>",
-                                           allowed_mentions=ALLOW_ALL)
+                                           allowed_mentions=ALLOW_MENTIONS)
                 return
             if self.should_trigger_go_live_ping(message):
                 print(f"[DEBUG] StreamPing conditions met. "
                       f"Sending stream ping.")
                 await message.channel.send(f"<@&{STREAM_PING_ID}>",
-                                           allowed_mentions=ALLOW_ALL)
+                                           allowed_mentions=ALLOW_MENTIONS)
                 return
             print("[DEBUG] Ignored - Conditions not met.")
+
+    # when receiving a DM
+    async def dm_response(self, message):
+        print(f"[DEBUG] Received a DM from {message.author}. Forwarding...")
+        response = ("I'm sorry, I don't respond to DMs, please use my "
+                    "commands in the server.\n"
+                    "I will forward this message to my dev, in case it does "
+                    "require a response.")
+        try:
+            await message.channel.send(response)
+        except discord.Forbidden:
+            print("Unable to respond to this DM.")
+        escaped_content = message.content.replace("```", "\\`\\`\\`")
+        fwd_msg = (f"{message.author.display_name} sent me a DM. It says:\n"
+                   f"```text\n{escaped_content}```")
+        crayon = self.bot.get_user(CRAYON_USER_ID)
+        if not crayon:
+            crayon = await self.bot.fetch_user(CRAYON_USER_ID)
+        await crayon.send(fwd_msg)
 
     # check conditions for birthday ping
     @staticmethod
