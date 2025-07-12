@@ -56,7 +56,8 @@ class PingListenerCog(commands.Cog):
             return
 
         if isinstance(message.channel, discord.DMChannel):
-            print(f"[DEBUG] Received a DM: {message.content}")
+            print(f"[DEBUG] Received a DM from {message.author}:"
+                  f" {message.content}")
             response = ("I'm sorry, I'm not programmed to respond to DMs.\n"
                         "Please use my commands in the server.")
             await message.channel.send(response)
