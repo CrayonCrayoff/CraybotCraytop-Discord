@@ -92,13 +92,24 @@ class PingListenerCog(commands.Cog):
             await message.channel.send(response)
         except discord.Forbidden:
             print("Unable to respond to this DM.")
+
+        fwd_text = f"{message.author.display_name} sent me a DM. It says:\n"
         escaped_content = message.content.replace("```", "\\`\\`\\`")
-        fwd_msg = (f"{message.author.display_name} sent me a DM. It says:\n"
-                   f"```text\n{escaped_content}```")
+
+        if escaped_content:
+            fwd_text += f"\n```text\n{escaped_content}```"
+        else:
+            if message.stickers:
+                fwd_text += "No message content found. But a sticker was sent."
+            else:
+                fwd_text += "No message content found."
+
+        attached_files = [await att.to_file() for att in message.attachments]
+
         crayon = self.bot.get_user(CRAYON_USER_ID)
         if not crayon:
             crayon = await self.bot.fetch_user(CRAYON_USER_ID)
-        await crayon.send(fwd_msg)
+        await crayon.send(content=fwd_text, files=attached_files)
 
     # check conditions for birthday ping
     @staticmethod
