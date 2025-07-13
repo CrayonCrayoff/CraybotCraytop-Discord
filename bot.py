@@ -67,6 +67,7 @@ async def load_cogs():
 
             if failed:
                 raise RuntimeError
+        print("Successfully loaded all cogs")
 
 
 @bot.event
