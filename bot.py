@@ -54,6 +54,7 @@ async def load_cogs():
                 print(f"Loaded {extension}")
             except commands.ExtensionAlreadyLoaded:
                 print(f"{extension} is already loaded")
+                failed = True
             except commands.NoEntryPointError:
                 print(f"{extension} is missing a setup(bot) function")
                 failed = True
